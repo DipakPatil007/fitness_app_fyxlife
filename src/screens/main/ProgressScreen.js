@@ -18,7 +18,7 @@ export default function ProgressScreen() {
         fetchCompletions();
 
         // Refresh data when screen comes into focus
-        const interval = setInterval(fetchCompletions, 30000); // Refresh every 30 seconds
+        const interval = setInterval(fetchCompletions, 1000); // Refresh every 30 seconds
         return () => clearInterval(interval);
     }, []);
 

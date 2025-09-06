@@ -1,23 +1,50 @@
 export const defaultGoals = [
     {
         id: 'move',
+        category: 'Physical',
         title: 'Move',
         emoji: '🏃',
         description: '20 min walk or 10k steps',
         progress: 0
     },
     {
+        id: 'strength',
+        category: 'Physical',
+        title: 'Strength',
+        emoji: '💪',
+        description: '15 min strength training',
+        progress: 0
+    },
+    {
         id: 'eat',
-        title: 'Eat',
+        category: 'Nutrition',
+        title: 'Eat Well',
         emoji: '🍽',
-        description: 'Healthy meals (no junk)',
+        description: 'Healthy balanced meals',
+        progress: 0
+    },
+    {
+        id: 'water',
+        category: 'Nutrition',
+        title: 'Hydrate',
+        emoji: '💧',
+        description: 'Drink 8 glasses of water',
         progress: 0
     },
     {
         id: 'calm',
-        title: 'Calm',
+        category: 'Mental',
+        title: 'Meditate',
         emoji: '😌',
         description: '10 min meditation',
+        progress: 0
+    },
+    {
+        id: 'sleep',
+        category: 'Mental',
+        title: 'Sleep',
+        emoji: '😴',
+        description: '7-8 hours of sleep',
         progress: 0
     }
 ];

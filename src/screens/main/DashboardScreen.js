@@ -147,14 +147,26 @@ export default function DashboardScreen() {
 
     // Update resetProgress to also reset lastLoginDate
     const resetProgress = async () => {
+        // Reset all goals progress
         const reset = goals.map((g) => ({ ...g, progress: 0 }));
         setGoals(reset);
         await saveItem(Keys.GOALS, reset);
+
+        // Reset streak
         setStreak(0);
         await saveItem(Keys.STREAK, 0);
         setLastLoginDate(null);
         await saveItem(Keys.LAST_LOGIN_DATE, null);
-        Alert.alert('Reset', 'Progress has been reset for demo purposes.');
+
+        // Reset today's completions
+        const dailyCompletions = await loadItem(Keys.DAILY_COMPLETIONS, {});
+        const today = new Date().toISOString().split('T')[0];
+        if (dailyCompletions[today]) {
+            delete dailyCompletions[today];
+            await saveItem(Keys.DAILY_COMPLETIONS, dailyCompletions);
+        }
+
+        Alert.alert('Reset Complete', 'All progress and today\'s completions have been reset.');
     };
 
     return (
@@ -166,14 +178,29 @@ export default function DashboardScreen() {
                     <Text style={styles.streakText}>🔥 Streak: {streak} day{streak === 1 ? '' : 's'}</Text>
                 </Animated.View>
 
-                <Text style={styles.sub}>Goals</Text>
-                {goals.map((g) => (
-                    <GoalCard
-                        key={g.id}
-                        goal={g}
-                        onPress={onGoalPress}
-                        onSwap={(goal) => swapGoals(goal)}
-                    />
+                <Text style={styles.sub}>Your Daily Goals</Text>
+
+                {/* Group goals by category */}
+                {Object.entries(
+                    goals.reduce((acc, goal) => {
+                        if (!acc[goal.category]) {
+                            acc[goal.category] = [];
+                        }
+                        acc[goal.category].push(goal);
+                        return acc;
+                    }, {})
+                ).map(([category, categoryGoals]) => (
+                    <View key={category}>
+                        <Text style={styles.categoryTitle}>{category}</Text>
+                        {categoryGoals.map((g) => (
+                            <GoalCard
+                                key={g.id}
+                                goal={g}
+                                onPress={onGoalPress}
+                                onSwap={(goal) => swapGoals(goal)}
+                            />
+                        ))}
+                    </View>
                 ))}
 
                 <View style={{ height: 12 }} />
@@ -200,8 +227,16 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#FFFFFF' },
-    header: { fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 8 },
+    container: {
+        flex: 1,
+        backgroundColor: '#FFFFFF'
+    },
+    header: {
+        fontSize: 22,
+        fontWeight: '800',
+        textAlign: 'center',
+        marginBottom: 8
+    },
     streakBox: {
         backgroundColor: '#FFF6E6',
         padding: 12,
@@ -210,8 +245,35 @@ const styles = StyleSheet.create({
         marginHorizontal: 4,
         alignItems: 'center'
     },
-    streakText: { fontWeight: '800' },
-    sub: { fontSize: 16, fontWeight: '700', marginTop: 12, marginBottom: 8, marginLeft: 4 },
-    actionBtn: { backgroundColor: '#1E60FF', marginTop: 12, padding: 12, borderRadius: 10, alignItems: 'center', marginHorizontal: 4 },
-    actionText: { color: '#FFF', fontWeight: '700' }
+    streakText: {
+        fontWeight: '800'
+    },
+    sub: {
+        fontSize: 18,
+        fontWeight: '800',
+        color: '#1A1F36',
+        marginTop: 24,
+        marginBottom: 16,
+        marginLeft: 4
+    },
+    categoryTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#666',
+        marginTop: 16,
+        marginBottom: 8,
+        marginLeft: 4
+    },
+    actionBtn: {
+        backgroundColor: '#1E60FF',
+        marginTop: 12,
+        padding: 12,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginHorizontal: 4
+    },
+    actionText: {
+        color: '#FFF',
+        fontWeight: '700'
+    }
 });

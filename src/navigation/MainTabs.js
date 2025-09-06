@@ -3,7 +3,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import DashboardScreen from '../screens/main/DashboardScreen';
 import ProgressScreen from '../screens/main/ProgressScreen';
 import RiskScreen from '../screens/main/RiskScreen';
-import { Text } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 
 const Tab = createBottomTabNavigator();
