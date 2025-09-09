@@ -2,6 +2,9 @@
 
 A React Native mobile application designed to help users track their daily wellness goals, monitor progress, and understand their health risks.
 
+Please find the below link for video link for the demo:
+https://drive.google.com/file/d/100BMt1Yeaml4caOZC1aGxShHnNmhWozf/view?usp=sharing
+
 ## 🛠 Technologies & Frameworks
 
 ### Core Technologies
