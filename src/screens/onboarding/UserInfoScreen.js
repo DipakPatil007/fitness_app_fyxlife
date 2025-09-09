@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 
 export default function UserInfoScreen({ navigation }) {
     const [name, setName] = useState('');
@@ -16,10 +16,32 @@ export default function UserInfoScreen({ navigation }) {
         <ScrollView contentContainerStyle={styles.container}>
             <Text style={styles.title}>Tell us about you</Text>
             <TextInput placeholder="Full name" value={name} onChangeText={setName} style={styles.input} />
-            <TextInput placeholder="Age" value={age} onChangeText={setAge} keyboardType="numeric" style={styles.input} />
-            <TextInput placeholder="Phone number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" style={styles.input} />
-            <TextInput placeholder="Gender" value={gender} onChangeText={setGender} style={styles.input} />
-            <TextInput placeholder="Activity level (Low / Moderate / High)" value={activity} onChangeText={setActivity} style={styles.input} />
+            <TextInput
+                placeholder="Age"
+                value={age}
+                onChangeText={text => setAge(text.replace(/[^0-9]/g, ''))}
+                keyboardType="numeric"
+                style={styles.input}
+            />
+            <TextInput
+                placeholder="Phone number"
+                value={phone}
+                onChangeText={text => setPhone(text.replace(/[^0-9]/g, ''))}
+                keyboardType="phone-pad"
+                style={styles.input}
+            />
+            <TextInput
+                placeholder="Gender"
+                value={gender}
+                onChangeText={setGender}
+                style={styles.input}
+            />
+            <TextInput
+                placeholder="Activity level (Low / Moderate / High)"
+                value={activity}
+                onChangeText={setActivity}
+                style={styles.input}
+            />
             <TouchableOpacity onPress={goNext} style={styles.next}>
                 <Text style={{ color: '#fff', fontWeight: '700' }}>Next</Text>
             </TouchableOpacity>

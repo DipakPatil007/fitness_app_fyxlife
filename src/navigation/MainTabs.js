@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import DashboardScreen from '../screens/main/DashboardScreen';
 import ProgressScreen from '../screens/main/ProgressScreen';
-import RiskScreen from '../screens/main/RiskScreen';
+import RiskOMeterScreen from '../screens/main/RiskOMeterScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 
 const Tab = createBottomTabNavigator();
@@ -28,7 +28,7 @@ export default function MainTabs() {
         >
             <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'Dashboard' }} />
             <Tab.Screen name="Progress" component={ProgressScreen} options={{ title: 'Progress' }} />
-            <Tab.Screen name="Risk" component={RiskScreen} options={{ title: 'Risk-o-Meter' }} />
+            <Tab.Screen name="Risk" component={RiskOMeterScreen} options={{ title: 'Risk-o-Meter' }} />
         </Tab.Navigator>
     );
 }

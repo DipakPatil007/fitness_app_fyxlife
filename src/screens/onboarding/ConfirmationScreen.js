@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { saveItem } from '../../services/storage';
 import { StorageKeys } from '../../services/storage';
@@ -8,6 +8,7 @@ export default function ConfirmationScreen({ navigation, route }) {
 
     const finishOnboarding = async () => {
         try {
+            console.log('Saving user:', user);
             await saveItem(StorageKeys.USER, user);
             await saveItem(StorageKeys.ONBOARDED, true);
             // initialize default goals & data if needed

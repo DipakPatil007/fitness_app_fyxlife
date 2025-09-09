@@ -18,6 +18,7 @@ export default function App() {
     const checkOnboard = async () => {
       try {
         const value = await AsyncStorage.getItem('@onboarded');
+        console.log('Onboarded value:', value);
         setOnboarded(value === 'true');
       } catch (e) {
         setOnboarded(false);

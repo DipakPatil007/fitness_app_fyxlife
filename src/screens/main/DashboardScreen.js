@@ -1,16 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Animated, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import GoalCard from '../../components/GoalCard';
-import ReplaceModal from '../../components/ReplaceModal';
 import { defaultGoals } from '../../models/mockData';
 import { loadItem, saveItem, updateCompletions, StorageKeys as Keys } from '../../services/storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function DashboardScreen() {
     const [goals, setGoals] = useState([]);
-    const [modalVisible, setModalVisible] = useState(false);
-    const [selectedGoal, setSelectedGoal] = useState(null);
+    const navigation = useNavigation();
     const scaleAnim = useRef(new Animated.Value(0)).current;
-    const [streak, setStreak] = useState(1);
+    const [streak, setStreak] = useState(0);
     const [lastLoginDate, setLastLoginDate] = useState(null);
 
     const updateStreak = async () => {
@@ -67,24 +68,21 @@ export default function DashboardScreen() {
             const saved = await loadItem(Keys.GOALS, null);
             const savedStreak = await loadItem(Keys.STREAK, 1);
             const savedLastLogin = await loadItem(Keys.LAST_LOGIN_DATE, null);
-            setGoals(saved ?? defaultGoals);
-            setStreak(savedStreak ?? 1);
+            const today = new Date().toISOString().split('T')[0];
+
+            // If last login is not today, reset goals to default
+            if (savedLastLogin && savedLastLogin !== today) {
+                setGoals(defaultGoals);
+                await saveItem(Keys.GOALS, defaultGoals);
+            } else {
+                setGoals(saved ?? defaultGoals);
+            }
+            setStreak(savedStreak ?? 0);
             setLastLoginDate(savedLastLogin);
             Animated.spring(scaleAnim, { toValue: 1, friction: 5, useNativeDriver: true }).start();
         };
         init();
     }, []);
-
-    const openReplace = (g) => {
-        setSelectedGoal(g);
-        setModalVisible(true);
-    };
-
-    const handleReplace = async (newGoal) => {
-        const updated = goals.map((g) => (g.id === newGoal.id ? newGoal : g));
-        setGoals(updated);
-        await saveItem(Keys.GOALS, updated);
-    };
 
     const onGoalPress = async (goal) => {
         try {
@@ -134,95 +132,84 @@ export default function DashboardScreen() {
         }
     };
 
-    const swapGoals = async (goal) => {
-        // For simplicity: swap selected goal with next one
-        const idx = goals.findIndex((g) => g.id === goal.id);
-        if (idx < 0) return;
-        const nextIdx = (idx + 1) % goals.length;
-        const copy = [...goals];
-        [copy[idx], copy[nextIdx]] = [copy[nextIdx], copy[idx]];
-        setGoals(copy);
-        await saveItem(Keys.GOALS, copy);
-    };
-
-    // Update resetProgress to also reset lastLoginDate
-    const resetProgress = async () => {
-        // Reset all goals progress
-        const reset = goals.map((g) => ({ ...g, progress: 0 }));
-        setGoals(reset);
-        await saveItem(Keys.GOALS, reset);
-
-        // Reset streak
-        setStreak(0);
-        await saveItem(Keys.STREAK, 0);
-        setLastLoginDate(null);
-        await saveItem(Keys.LAST_LOGIN_DATE, null);
-
-        // Reset today's completions
-        const dailyCompletions = await loadItem(Keys.DAILY_COMPLETIONS, {});
-        const today = new Date().toISOString().split('T')[0];
-        if (dailyCompletions[today]) {
-            delete dailyCompletions[today];
-            await saveItem(Keys.DAILY_COMPLETIONS, dailyCompletions);
-        }
-
-        Alert.alert('Reset Complete', 'All progress and today\'s completions have been reset.');
+    // Reset all app data and navigate to Welcome screen
+    const handleReset = async () => {
+        Alert.alert(
+            'Reset App',
+            'Are you sure you want to reset all your data and return to the welcome screen?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Reset',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await saveItem(Keys.GOALS, null);
+                            await saveItem(Keys.STREAK, 0);
+                            await saveItem(Keys.LAST_LOGIN_DATE, null);
+                            await saveItem(Keys.DAILY_COMPLETIONS, {});
+                            await saveItem(Keys.WEEKLY_COMPLETIONS, {});
+                            await saveItem(Keys.MONTHLY_COMPLETIONS, {});
+                            await saveItem(Keys.USER, null);
+                            await saveItem(Keys.ONBOARDED, 'false');
+                            await AsyncStorage.setItem('@onboarded', 'false');
+                            navigation.dispatch(
+                                CommonActions.reset({
+                                    index: 0,
+                                    routes: [{ name: 'Welcome' }],
+                                })
+                            );
+                        } catch (e) {
+                            Alert.alert('Error', 'Failed to reset app data.');
+                        }
+                    },
+                },
+            ]
+        );
     };
 
     return (
-        <View style={styles.container}>
-            <ScrollView contentContainerStyle={{ padding: 16 }}>
-                <Text style={styles.header}>Daily Dashboard</Text>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+            <View style={styles.container}>
+                <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+                    <Text style={styles.header}>Daily Dashboard</Text>
 
-                <Animated.View style={[styles.streakBox, { transform: [{ scale: scaleAnim }] }]}>
-                    <Text style={styles.streakText}>🔥 Streak: {streak} day{streak === 1 ? '' : 's'}</Text>
-                </Animated.View>
+                    <Animated.View style={[styles.streakBox, { transform: [{ scale: scaleAnim }] }]}>
+                        <Text style={styles.streakText}>🔥 Streak: {streak} day{streak === 1 ? '' : 's'}</Text>
+                    </Animated.View>
 
-                <Text style={styles.sub}>Your Daily Goals</Text>
+                    <Text style={styles.sub}>Your Daily Goals</Text>
 
-                {/* Group goals by category */}
-                {Object.entries(
-                    goals.reduce((acc, goal) => {
-                        if (!acc[goal.category]) {
-                            acc[goal.category] = [];
-                        }
-                        acc[goal.category].push(goal);
-                        return acc;
-                    }, {})
-                ).map(([category, categoryGoals]) => (
-                    <View key={category}>
-                        <Text style={styles.categoryTitle}>{category}</Text>
-                        {categoryGoals.map((g) => (
-                            <GoalCard
-                                key={g.id}
-                                goal={g}
-                                onPress={onGoalPress}
-                                onSwap={(goal) => swapGoals(goal)}
-                            />
-                        ))}
-                    </View>
-                ))}
+                    {/* Group goals by category */}
+                    {Object.entries(
+                        goals.reduce((acc, goal) => {
+                            if (!acc[goal.category]) {
+                                acc[goal.category] = [];
+                            }
+                            acc[goal.category].push(goal);
+                            return acc;
+                        }, {})
+                    ).map(([category, categoryGoals]) => (
+                        <View key={category}>
+                            <Text style={styles.categoryTitle}>{category}</Text>
+                            {categoryGoals.map((g) => (
+                                <GoalCard
+                                    key={g.id}
+                                    goal={g}
+                                    onPress={onGoalPress}
+                                    onSwap={{}}
+                                />
+                            ))}
+                        </View>
+                    ))}
 
-                <View style={{ height: 12 }} />
-
-                <TouchableOpacity style={styles.actionBtn} onPress={() => { setModalVisible(true); setSelectedGoal(goals[0] ?? null); }}>
-                    <Text style={styles.actionText}>Replace a Goal</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.actionBtn, { marginTop: 8, backgroundColor: '#EFF3FF' }]} onPress={resetProgress}>
-                    <Text style={[styles.actionText, { color: '#1E60FF' }]}>Reset Progress</Text>
-                </TouchableOpacity>
-
-                <View style={{ height: 80 }} />
-            </ScrollView>
-
-            <ReplaceModal
-                visible={modalVisible}
-                initial={selectedGoal}
-                onClose={() => setModalVisible(false)}
-                onReplace={handleReplace}
-            />
-        </View>
+                    <View style={{ height: 12 }} />
+                    <TouchableOpacity style={styles.resetBtn} onPress={handleReset}>
+                        <Text style={styles.resetBtnText}>Reset Everything</Text>
+                    </TouchableOpacity>
+                </ScrollView>
+            </View>
+        </SafeAreaView>
     );
 }
 
@@ -238,7 +225,7 @@ const styles = StyleSheet.create({
         marginBottom: 8
     },
     streakBox: {
-        backgroundColor: '#FFF6E6',
+        backgroundColor: '#ffe7beff',
         padding: 12,
         borderRadius: 10,
         marginBottom: 12,
@@ -265,7 +252,7 @@ const styles = StyleSheet.create({
         marginLeft: 4
     },
     actionBtn: {
-        backgroundColor: '#1E60FF',
+        backgroundColor: '#6694ffff',
         marginTop: 12,
         padding: 12,
         borderRadius: 10,
@@ -275,5 +262,21 @@ const styles = StyleSheet.create({
     actionText: {
         color: '#FFF',
         fontWeight: '700'
+    }
+    ,
+    resetBtn: {
+        marginTop: 24,
+        marginHorizontal: 16,
+        backgroundColor: '#FF4D4F',
+        padding: 16,
+        borderRadius: 10,
+        alignItems: 'center',
+        elevation: 2,
+    },
+    resetBtnText: {
+        color: '#FFF',
+        fontWeight: 'bold',
+        fontSize: 16,
+        letterSpacing: 1,
     }
 });
