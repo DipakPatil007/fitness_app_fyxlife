@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { loadItem, StorageKeys } from '../../services/storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const calculateRiskPercentage = (age, baseRisk, riskFactors) => {
     // Base risk increases with age
@@ -25,7 +26,7 @@ const getRiskLevel = (percentage) => {
     return 'high';
 };
 
-const getRiskCategories = (age = 35) => {
+const getRiskCategories = (age = 30) => {
     const calculateRisk = (baseRisk, riskFactors) => {
         const percentage = calculateRiskPercentage(age, baseRisk, riskFactors);
         const roundedPercentage = Math.round(percentage);
@@ -141,14 +142,15 @@ const RiskLevel = ({ level, percentage }) => {
 };
 
 export default function RiskOMeterScreen() {
-    const [userAge, setUserAge] = useState(35);
-    const [categories, setCategories] = useState(() => getRiskCategories(35));
+    const [userAge, setUserAge] = useState(30);
+    const [categories, setCategories] = useState(() => getRiskCategories(30));
 
     useEffect(() => {
         const loadUserInfo = async () => {
             try {
-                const userInfo = await loadItem(StorageKeys.USER_INFO, null);
-                const age = userInfo?.age ? parseInt(userInfo.age) : 35;
+                const userInfo = await loadItem(StorageKeys.USER, null);
+                console.log('Loaded user info:', userInfo);
+                const age = userInfo?.age ? parseInt(userInfo.age) : 40;
                 setUserAge(age);
                 setCategories(getRiskCategories(age));
             } catch (error) {
@@ -159,36 +161,38 @@ export default function RiskOMeterScreen() {
     }, []);
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.header}>Risk-o-meter ⚠️</Text>
-            <Text style={styles.subheader}>Health Risk Assessment (Age: {userAge})</Text>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F6FA' }}>
+            <ScrollView style={styles.container}>
+                <Text style={styles.header}>Risk-o-meter ⚠️</Text>
+                <Text style={styles.subheader}>Health Risk Assessment (Age: {userAge})</Text>
 
-            {categories.map((category, index) => (
-                <View key={index} style={styles.categoryCard}>
-                    <View style={styles.categoryHeader}>
-                        <Text style={styles.emoji}>{category.emoji}</Text>
-                        <Text style={styles.categoryTitle}>{category.title}</Text>
-                    </View>
-
-                    {category.risks.map((risk, riskIndex) => (
-                        <View key={riskIndex} style={styles.riskItem}>
-                            <Text style={styles.riskName}>{risk.name}</Text>
-                            <RiskLevel
-                                level={risk.level}
-                                percentage={Math.round(risk.percentage)}
-                            />
+                {categories.map((category, index) => (
+                    <View key={index} style={styles.categoryCard}>
+                        <View style={styles.categoryHeader}>
+                            <Text style={styles.emoji}>{category.emoji}</Text>
+                            <Text style={styles.categoryTitle}>{category.title}</Text>
                         </View>
-                    ))}
-                </View>
-            ))}
 
-            <View style={styles.disclaimer}>
-                <Text style={styles.disclaimerText}>
-                    Note: This is a simplified risk assessment based on general health factors.
-                    Please consult healthcare professionals for accurate medical advice.
-                </Text>
-            </View>
-        </ScrollView>
+                        {category.risks.map((risk, riskIndex) => (
+                            <View key={riskIndex} style={styles.riskItem}>
+                                <Text style={styles.riskName}>{risk.name}</Text>
+                                <RiskLevel
+                                    level={risk.level}
+                                    percentage={Math.round(risk.percentage)}
+                                />
+                            </View>
+                        ))}
+                    </View>
+                ))}
+
+                <View style={styles.disclaimer}>
+                    <Text style={styles.disclaimerText}>
+                        Note: This is a simplified risk assessment based on general health factors.
+                        Please consult healthcare professionals for accurate medical advice.
+                    </Text>
+                </View>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
@@ -254,7 +258,7 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 12,
         alignItems: 'center',
-        minWidth: 90,
+        width: 120,
     },
     riskLevelText: {
         fontSize: 18,

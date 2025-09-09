@@ -31,11 +31,24 @@ export const loadItem = async (key, defaultValue = null) => {
     }
 };
 
+// Helper to get ISO week number
+function getISOWeek(date) {
+    const tmp = new Date(date.valueOf());
+    const dayNum = (date.getDay() + 6) % 7;
+    tmp.setDate(tmp.getDate() - dayNum + 3);
+    const firstThursday = tmp.valueOf();
+    tmp.setMonth(0, 1);
+    if (tmp.getDay() !== 4) {
+        tmp.setMonth(0, 1 + ((4 - tmp.getDay()) + 7) % 7);
+    }
+    return 1 + Math.ceil((firstThursday - tmp) / 604800000);
+}
+
 export const updateCompletions = async (goalId) => {
     try {
         const today = new Date();
         const dateStr = today.toISOString().split('T')[0];
-        const weekStr = `${today.getFullYear()}-W${Math.ceil((today.getDate() + today.getDay()) / 7)}`;
+        const weekStr = `${today.getFullYear()}-W${getISOWeek(today)}`;
         const monthStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}`;
 
         // Update daily completions
@@ -53,20 +66,17 @@ export const updateCompletions = async (goalId) => {
         if (!weeklyCompletions[weekStr]) {
             weeklyCompletions[weekStr] = [];
         }
-        if (!weeklyCompletions[weekStr].includes(goalId)) {
-            weeklyCompletions[weekStr].push(goalId);
-            await saveItem(StorageKeys.WEEKLY_COMPLETIONS, weeklyCompletions);
-        }
+        weeklyCompletions[weekStr].push(goalId);
+        await saveItem(StorageKeys.WEEKLY_COMPLETIONS, weeklyCompletions);
 
         // Update monthly completions
         const monthlyCompletions = await loadItem(StorageKeys.MONTHLY_COMPLETIONS, {});
         if (!monthlyCompletions[monthStr]) {
             monthlyCompletions[monthStr] = [];
         }
-        if (!monthlyCompletions[monthStr].includes(goalId)) {
-            monthlyCompletions[monthStr].push(goalId);
-            await saveItem(StorageKeys.MONTHLY_COMPLETIONS, monthlyCompletions);
-        }
+        monthlyCompletions[monthStr].push(goalId);
+        await saveItem(StorageKeys.MONTHLY_COMPLETIONS, monthlyCompletions);
+
     } catch (e) {
         console.error('Error updating completions', e);
     }
@@ -76,7 +86,7 @@ export const getCompletions = async () => {
     try {
         const today = new Date();
         const dateStr = today.toISOString().split('T')[0];
-        const weekStr = `${today.getFullYear()}-W${Math.ceil((today.getDate() + today.getDay()) / 7)}`;
+        const weekStr = `${today.getFullYear()}-W${getISOWeek(today)}`;
         const monthStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}`;
 
         const dailyCompletions = await loadItem(StorageKeys.DAILY_COMPLETIONS, {});

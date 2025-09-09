@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { getCompletions } from '../../services/storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProgressScreen() {
     const [completions, setCompletions] = useState({
@@ -12,63 +13,60 @@ export default function ProgressScreen() {
     useEffect(() => {
         const fetchCompletions = async () => {
             const stats = await getCompletions();
-            console.log('Progress Stats:', stats);
             setCompletions(stats);
         };
         fetchCompletions();
-
-        // Refresh data when screen comes into focus
-        const interval = setInterval(fetchCompletions, 1000); // Refresh every 30 seconds
-        return () => clearInterval(interval);
-    }, []);
+    });
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.header}>Progress Summary</Text>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F6FA' }}>
+            <ScrollView style={styles.container}>
+                <Text style={styles.header}>Progress Summary</Text>
 
-            <View style={styles.card}>
-                <View style={styles.row}>
-                    <View style={styles.labelContainer}>
-                        <Text style={styles.emoji}>📅</Text>
-                        <Text style={styles.label}>Today's Goals</Text>
-                    </View>
-                    <View style={styles.valueContainer}>
-                        <Text style={styles.value}>{completions.daily}</Text>
-                        <Text style={styles.subText}>completed</Text>
+                <View style={styles.card}>
+                    <View style={styles.row}>
+                        <View style={styles.labelContainer}>
+                            <Text style={styles.emoji}>📅</Text>
+                            <Text style={styles.label}>Today's Goals</Text>
+                        </View>
+                        <View style={styles.valueContainer}>
+                            <Text style={styles.value}>{completions.daily}</Text>
+                            <Text style={styles.subText}>completed</Text>
+                        </View>
                     </View>
                 </View>
-            </View>
 
-            <View style={styles.card}>
-                <View style={styles.row}>
-                    <View style={styles.labelContainer}>
-                        <Text style={styles.emoji}>📊</Text>
-                        <Text style={styles.label}>This Week</Text>
-                    </View>
-                    <View style={styles.valueContainer}>
-                        <Text style={styles.value}>{completions.weekly}</Text>
-                        <Text style={styles.subText}>completed</Text>
+                <View style={styles.card}>
+                    <View style={styles.row}>
+                        <View style={styles.labelContainer}>
+                            <Text style={styles.emoji}>📊</Text>
+                            <Text style={styles.label}>This Week</Text>
+                        </View>
+                        <View style={styles.valueContainer}>
+                            <Text style={styles.value}>{completions.weekly}</Text>
+                            <Text style={styles.subText}>completed</Text>
+                        </View>
                     </View>
                 </View>
-            </View>
 
-            <View style={styles.card}>
-                <View style={styles.row}>
-                    <View style={styles.labelContainer}>
-                        <Text style={styles.emoji}>📈</Text>
-                        <Text style={styles.label}>This Month</Text>
-                    </View>
-                    <View style={styles.valueContainer}>
-                        <Text style={styles.value}>{completions.monthly}</Text>
-                        <Text style={styles.subText}>completed</Text>
+                <View style={styles.card}>
+                    <View style={styles.row}>
+                        <View style={styles.labelContainer}>
+                            <Text style={styles.emoji}>📈</Text>
+                            <Text style={styles.label}>This Month</Text>
+                        </View>
+                        <View style={styles.valueContainer}>
+                            <Text style={styles.value}>{completions.monthly}</Text>
+                            <Text style={styles.subText}>completed</Text>
+                        </View>
                     </View>
                 </View>
-            </View>
 
-            <Text style={styles.tip}>
-                💡 Complete your daily goals to improve your streak!
-            </Text>
-        </ScrollView>
+                <Text style={styles.tip}>
+                    💡 Complete your daily goals to improve your streak!
+                </Text>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 

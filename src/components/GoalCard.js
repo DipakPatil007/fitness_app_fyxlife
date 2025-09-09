@@ -48,12 +48,6 @@ export default function GoalCard({ goal, onPress, onSwap }) {
                         <Text style={styles.title}>{goal.title}</Text>
                         <Text style={styles.desc}>{goal.description}</Text>
                     </View>
-                    <View style={styles.actionButtons}>
-                        <TouchableOpacity onPress={() => onSwap(goal)} style={styles.swapBtn}>
-                            <Ionicons name="swap-horizontal" size={16} color="#1E60FF" />
-                            <Text style={styles.swapText}>Swap</Text>
-                        </TouchableOpacity>
-                    </View>
                 </View>
                 <View style={styles.progressBase}>
                     <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
@@ -84,12 +78,12 @@ const styles = StyleSheet.create({
         marginVertical: 8,
     },
     card: {
-        backgroundColor: '#F7F9FC',
+        backgroundColor: '#ffffffff',
         padding: 16,
         borderRadius: 16,
         shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
+        shadowOpacity: 0.15,
+        shadowRadius: 15,
         shadowOffset: { width: 0, height: 2 },
         elevation: 3
     },
