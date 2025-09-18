@@ -1,4 +1,4 @@
-# FyxLife - Wellness & Fitness Tracking App 🌱
+Wellness & Fitness Tracking App 🌱
 
 A React Native mobile application designed to help users track their daily wellness goals, monitor progress, and understand their health risks.
 
